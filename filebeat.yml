@@ -1,0 +1,15 @@
+filebeat.inputs:
+- type: udp
+  enabled: true
+  host: "0.0.0.0:514"
+
+processors:
+  - add_host_metadata: ~
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "logs-%{+yyyy.MM.dd}"
+  
+setup.template.enabled: false
+
+logging.level: info
