@@ -1,0 +1,15 @@
+# SOC Shift Digest — {{ generated_at }}
+
+**{{ verdicts|length }} alert(s)** — {{ severity_counts.critical }} critical, {{ severity_counts.high }} high, {{ severity_counts.medium }} medium, {{ severity_counts.low }} low, {{ severity_counts.unknown }} unknown
+
+## Narrative
+
+{{ narrative }}
+
+## Alerts
+
+| Severity | Source | Rule | Host | Technique | Confidence |
+|---|---|---|---|---|---|
+{% for v in verdicts -%}
+| {{ v.severity }} | {{ v.source_system }} | {{ v.rule_name or v.alert_id }} | {{ v.host or "-" }} | {{ v.mitre_technique or "-" }} | {{ "%.0f"|format(v.confidence * 100) }}% |
+{% endfor %}

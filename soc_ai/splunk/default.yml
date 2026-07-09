@@ -1,0 +1,8 @@
+splunk:
+  password: "${SPLUNK_PASSWORD}"
+  svc_port: 8089
+  hec:
+    ssl: True
+    port: 8088
+    token: "${SPLUNK_HEC_TOKEN}"
+    ss_ssl: False

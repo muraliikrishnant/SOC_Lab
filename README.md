@@ -113,6 +113,7 @@ python3 alert_analyzer.py
 | **QUICK_START.md** | Quick reference for common tasks |
 | **SOC_SIEM_RPI_SETUP.md** | Detailed Raspberry Pi configuration |
 | **SOC_SIEM_SETUP_GUIDE.md** | Full architecture & explanation |
+| **SOC_AI_PHASE2.md** | GraphRAG triage layer (Splunk + Elastic, Neo4j, Qdrant, LLM reasoning, reports) — Phase 2, builds on this stack |
 
 ---
 

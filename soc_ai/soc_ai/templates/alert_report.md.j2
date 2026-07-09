@@ -1,0 +1,24 @@
+## {{ "🚨" if verdict.severity in ("high", "critical") else "⚠️" }} {{ verdict.rule_name or verdict.alert_id }}
+
+| Field | Value |
+|---|---|
+| Alert ID | `{{ verdict.alert_id }}` |
+| Source | {{ verdict.source_system }} |
+| Severity | **{{ verdict.severity }}** |
+| ATT&CK Technique | {{ verdict.mitre_technique or "n/a" }} |
+| Confidence | {{ "%.0f"|format(verdict.confidence * 100) }}% |
+| Host | {{ verdict.host or "unknown" }} |
+| User | {{ verdict.user or "unknown" }} |
+| Source IP | {{ verdict.src_ip or "unknown" }} |
+| Timestamp | {{ verdict.timestamp_str }} |
+
+**Summary:** {{ verdict.summary }}
+
+**Recommended action:** {{ verdict.recommended_action }}
+
+**Cited evidence:**
+{% for e in verdict.cited_evidence %}
+- {{ e }}
+{% else %}
+- (none — insufficient retrieved context)
+{% endfor %}
