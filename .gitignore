@@ -3,3 +3,4 @@
 soc_ai/.venv/
 __pycache__/
 *.pyc
+*.csv

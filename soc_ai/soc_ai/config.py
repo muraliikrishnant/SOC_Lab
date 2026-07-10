@@ -33,6 +33,12 @@ SPLUNK_PASSWORD = os.environ.get("SPLUNK_PASSWORD", "Changeme123!")
 SPLUNK_VERIFY_TLS = _bool("SPLUNK_VERIFY_TLS", False)
 SPLUNK_SEARCH_INDEX = os.environ.get("SPLUNK_SEARCH_INDEX", "*")
 
+# How far back chat's live-search looks by default. Wide on purpose: this
+# lab mixes live alerts with bulk-imported historical datasets (e.g. a CSV
+# backfilled with 2024 timestamps), and a tight "-24h" window silently
+# hides all of that with no indication why nothing was found.
+CHAT_SEARCH_EARLIEST = os.environ.get("CHAT_SEARCH_EARLIEST", "-5y")
+
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "")
 
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "30"))

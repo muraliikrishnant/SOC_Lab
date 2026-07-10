@@ -125,6 +125,7 @@ services:
       - splunk-data:/opt/splunk/var
       - ./soc_ai/splunk/default.yml:/tmp/defaults/default.yml:ro
       - ./soc_ai/splunk/apps/soc_ai_chat:/opt/splunk/etc/apps/soc_ai_chat
+      - ./soc_ai/splunk/apps/soc_ai_data:/opt/splunk/etc/apps/soc_ai_data
     ports:
       - "8000:8000"   # Splunk Web
       - "8088:8088"   # HTTP Event Collector (write-back)

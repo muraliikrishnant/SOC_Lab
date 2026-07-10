@@ -83,13 +83,14 @@ def writeback(verdict: Verdict) -> bool:
         return False
 
 
-def search(keywords: list[str], earliest: str = "-24h", limit: int = 20) -> list[dict]:
+def search(keywords: list[str], earliest: Optional[str] = None, limit: int = 20) -> list[dict]:
     """Ad hoc oneshot search used by chat.py to ground the assistant on
     live Splunk data — the triage pipeline only embeds alerts it has
     actually processed, so a chat question about logs that never went
     through /ingest needs its own direct lookup instead of relying on the
     vector store."""
     terms = " OR ".join(f'"{k}"' for k in keywords) if keywords else "*"
+    earliest = earliest or config.CHAT_SEARCH_EARLIEST
     spl = (
         f'search index={config.SPLUNK_SEARCH_INDEX} ({terms}) sourcetype!="soc:ai:verdict" '
         f"earliest={earliest} | head {limit}"
