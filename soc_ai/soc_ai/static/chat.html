@@ -58,10 +58,15 @@ async function submit() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.detail || 'request failed');
     thinking.textContent = data.reply;
+    const metaParts = [];
+    if (data.live_events_used) metaParts.push(data.live_events_used + ' live Splunk event(s)');
     if (data.context_used && data.context_used.length) {
+      metaParts.push('knowledge: ' + data.context_used.map(h => h.natural_id).join(', '));
+    }
+    if (metaParts.length) {
       const meta = document.createElement('div');
       meta.className = 'meta';
-      meta.textContent = 'grounded on: ' + data.context_used.map(h => h.natural_id).join(', ');
+      meta.textContent = 'grounded on: ' + metaParts.join(' | ');
       thinking.appendChild(document.createElement('br'));
       thinking.appendChild(meta);
     }

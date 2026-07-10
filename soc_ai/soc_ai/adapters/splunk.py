@@ -83,6 +83,46 @@ def writeback(verdict: Verdict) -> bool:
         return False
 
 
+def search(keywords: list[str], earliest: str = "-24h", limit: int = 20) -> list[dict]:
+    """Ad hoc oneshot search used by chat.py to ground the assistant on
+    live Splunk data — the triage pipeline only embeds alerts it has
+    actually processed, so a chat question about logs that never went
+    through /ingest needs its own direct lookup instead of relying on the
+    vector store."""
+    terms = " OR ".join(f'"{k}"' for k in keywords) if keywords else "*"
+    spl = (
+        f'search index={config.SPLUNK_SEARCH_INDEX} ({terms}) sourcetype!="soc:ai:verdict" '
+        f"earliest={earliest} | head {limit}"
+    )
+    url = f"{config.SPLUNK_URL}/services/search/jobs/export"
+    try:
+        resp = requests.post(
+            url,
+            auth=(config.SPLUNK_USER, config.SPLUNK_PASSWORD),
+            data={"search": spl, "output_mode": "json", "exec_mode": "oneshot"},
+            verify=config.SPLUNK_VERIFY_TLS,
+            timeout=20,
+        )
+        resp.raise_for_status()
+    except requests.RequestException as exc:
+        log.warning("Splunk chat search failed: %s", exc)
+        return []
+
+    events = []
+    for line in resp.text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            doc = json.loads(line)
+        except ValueError:
+            continue
+        result = doc.get("result")
+        if result:
+            events.append(result)
+    return events
+
+
 def poll(since: Optional[float]) -> tuple[list[dict], Optional[float]]:
     """Pull recent events via the Splunk REST API (oneshot search export).
     Returns (raw_events, new_since_cursor)."""
