@@ -23,6 +23,21 @@ _client: Optional[QdrantClient] = None
 _EMBED_DIM_CACHE: Optional[int] = None
 
 
+def ollama_post(path: str, payload: dict, timeout: int = 60):
+    """POST to Ollama, routed to the local container or to Ollama Cloud
+    depending on whether the requested model is tagged "*:cloud" — cloud
+    models don't run through the local server, they're a direct call to
+    ollama.com authenticated with OLLAMA_API_KEY."""
+    model = payload.get("model", "")
+    if model.endswith(":cloud"):
+        url = f"{config.OLLAMA_CLOUD_URL}{path}"
+        headers = {"Authorization": f"Bearer {config.OLLAMA_API_KEY}"}
+    else:
+        url = f"{config.OLLAMA_URL}{path}"
+        headers = {}
+    return requests.post(url, json=payload, headers=headers, timeout=timeout)
+
+
 def get_client() -> QdrantClient:
     global _client
     if _client is None:
@@ -31,9 +46,9 @@ def get_client() -> QdrantClient:
 
 
 def embed(text: str) -> list[float]:
-    resp = requests.post(
-        f"{config.OLLAMA_URL}/api/embeddings",
-        json={"model": config.EMBED_MODEL, "prompt": text[:8000]},
+    resp = ollama_post(
+        "/api/embeddings",
+        {"model": config.EMBED_MODEL, "prompt": text[:8000]},
         timeout=30,
     )
     resp.raise_for_status()

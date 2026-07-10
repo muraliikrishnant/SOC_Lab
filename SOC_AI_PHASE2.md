@@ -66,14 +66,38 @@ docker compose up -d
 docker compose ps      # wait for neo4j, qdrant, splunk, soc-api healthy
 ```
 
-Pull the models the pipeline needs (embeddings + reasoning):
+Pull the models the pipeline needs — embeddings run locally, reasoning runs
+on Ollama Cloud (set `OLLAMA_API_KEY` in `.env` first, from
+https://ollama.com/settings/keys):
 
 ```bash
-docker compose exec ollama ollama pull nomic-embed-text
-docker compose exec ollama ollama pull mistral   # already used by alert_analyzer.py; swap to
-                                                   # llama3.1:8b or qwen2.5:14b later via LLM_MODEL
-                                                   # env var for stronger structured-output reasoning
+docker compose exec ollama ollama pull nomic-embed-text   # local embeddings
+docker compose exec ollama ollama pull gemma4:cloud       # reasoning + chat, via Ollama Cloud
 ```
+
+Cloud models (anything tagged `*:cloud`) aren't proxied by the local
+`ollama` container the way local models are — `soc-api` calls
+`https://ollama.com/api/...` directly with `OLLAMA_API_KEY` as a bearer
+token instead (see `vectorstore.ollama_post()`); only the embedding model
+actually runs against the local container. Swap `LLM_MODEL` in `.env` to
+any other `*:cloud` tag later without code changes.
+
+## Chat inside Splunk
+
+`soc-api` exposes a small chat assistant grounded on the same ATT&CK /
+Sigma / past-alert knowledge as the triage pipeline:
+
+```bash
+curl -X POST http://localhost:8080/chat -H 'Content-Type: application/json' \
+  -d '{"message": "what is T1110?", "history": []}'
+```
+
+It's also wired up as a native tab inside Splunk itself
+(`soc_ai/splunk/apps/soc_ai_chat`, mounted into the Splunk container) —
+open Splunk Web, pick the **SOC AI Chat** app from the app switcher, and
+chat with the AI while looking at search results. It's an iframe onto
+`http://localhost:8080/chat/ui`, so `soc-api` must be reachable at that
+address from your browser.
 
 Load the grounding knowledge (curated MITRE ATT&CK subset + Sigma-style
 rules — see `soc_ai/soc_ai/seed/`) into Neo4j + Qdrant:

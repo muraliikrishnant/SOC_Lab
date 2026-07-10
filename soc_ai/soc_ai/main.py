@@ -1,15 +1,20 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Optional
 
 import requests
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
+from pydantic import BaseModel
 
+from . import chat as chat_module
 from . import config, pipeline, seed_data, store
 from .adapters import ADAPTERS
 from .report import render_digest_report
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -80,6 +85,27 @@ async def retrieve_only(source: str, raw: dict):
 async def digest_report(hours: float = 12):
     verdicts = store.recent(since_seconds=hours * 3600)
     return await asyncio.to_thread(render_digest_report, verdicts)
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[dict] = []
+
+
+@app.get("/chat/ui")
+async def chat_ui():
+    """Chat page meant to be embedded as an iframe panel inside a Splunk
+    dashboard (see soc_ai/splunk/apps/soc_ai_chat) so an analyst can talk
+    to the AI while looking at search results."""
+    return FileResponse(_STATIC_DIR / "chat.html")
+
+
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    try:
+        return await asyncio.to_thread(chat_module.chat, req.message, req.history)
+    except requests.RequestException as exc:
+        raise HTTPException(502, f"Ollama chat call failed: {exc}")
 
 
 @app.post("/seed")

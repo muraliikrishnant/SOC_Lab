@@ -9,7 +9,14 @@ ELASTICSEARCH_URL = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "nomic-embed-text")
-LLM_MODEL = os.environ.get("LLM_MODEL", "qwen2.5:1.5b")
+
+# Reasoning/chat model runs on Ollama Cloud, not the local container — any
+# model tagged "*:cloud" is routed by reasoning.py / chat.py to the
+# https://ollama.com API with OLLAMA_API_KEY as a bearer token instead of
+# the local OLLAMA_URL. Only embeddings run against the local container.
+LLM_MODEL = os.environ.get("LLM_MODEL", "gemma4:cloud")
+OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY", "")
+OLLAMA_CLOUD_URL = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com")
 
 NEO4J_URL = os.environ.get("NEO4J_URL", "bolt://localhost:7687")
 NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")

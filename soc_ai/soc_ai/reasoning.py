@@ -13,7 +13,7 @@ from typing import Optional
 
 import requests
 
-from . import config
+from . import config, vectorstore
 from .schema import CommonAlert, RetrievalContext, Verdict
 
 log = logging.getLogger(__name__)
@@ -85,9 +85,9 @@ _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
 def reason(alert: CommonAlert, ctx: RetrievalContext) -> Verdict:
     prompt = build_prompt(alert, ctx)
     try:
-        resp = requests.post(
-            f"{config.OLLAMA_URL}/api/generate",
-            json={
+        resp = vectorstore.ollama_post(
+            "/api/generate",
+            {
                 "model": config.LLM_MODEL,
                 "system": _SYSTEM_PROMPT,
                 "prompt": prompt,
@@ -167,9 +167,9 @@ def generate_digest_narrative(verdicts: list[Verdict]) -> str:
         "Verdicts are pre-computed and trusted (not raw attacker input).\n\n" + "\n".join(lines)
     )
     try:
-        resp = requests.post(
-            f"{config.OLLAMA_URL}/api/generate",
-            json={"model": config.LLM_MODEL, "prompt": prompt, "stream": False},
+        resp = vectorstore.ollama_post(
+            "/api/generate",
+            {"model": config.LLM_MODEL, "prompt": prompt, "stream": False},
             timeout=60,
         )
         resp.raise_for_status()

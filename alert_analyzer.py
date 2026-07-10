@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import requests
 import json
 import time
@@ -9,7 +10,24 @@ import sys
 # Configuration
 ELASTICSEARCH_URL = "http://localhost:9200"
 OLLAMA_URL = "http://localhost:11434"
+OLLAMA_MODEL = "gemma4:cloud"
+OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY", "")
 DISCORD_WEBHOOK = ""  # Set this before running: export DISCORD_WEBHOOK="your_url"
+
+
+def ollama_post(path: str, payload: dict, timeout: int = 30):
+    """Route to the local container for local models, or directly to
+    Ollama Cloud (with OLLAMA_API_KEY as bearer token) for any model
+    tagged "*:cloud" — cloud models aren't proxied by the local server."""
+    model = payload.get("model", "")
+    if model.endswith(":cloud"):
+        return requests.post(
+            "https://ollama.com" + path,
+            json=payload,
+            headers={"Authorization": f"Bearer {OLLAMA_API_KEY}"},
+            timeout=timeout,
+        )
+    return requests.post(OLLAMA_URL + path, json=payload, timeout=timeout)
 
 class SOCAnalyzer:
     def __init__(self):
@@ -25,7 +43,7 @@ class SOCAnalyzer:
             if response.status_code == 200:
                 models = response.json().get("models", [])
                 if not models:
-                    print("⚠️  No Ollama models loaded. Run: docker compose exec ollama ollama pull mistral")
+                    print("⚠️  No Ollama models loaded. Run: docker compose exec ollama ollama pull nomic-embed-text")
                 else:
                     print(f"✅ Ollama ready with {len(models)} model(s): {[m['name'] for m in models]}")
             else:
@@ -75,10 +93,10 @@ Respond with:
 2. Action needed (Yes/No)"""
         
         try:
-            response = requests.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={
-                    "model": "mistral",
+            response = ollama_post(
+                "/api/generate",
+                {
+                    "model": OLLAMA_MODEL,
                     "prompt": prompt,
                     "stream": False
                 },

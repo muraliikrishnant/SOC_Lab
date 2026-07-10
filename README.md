@@ -20,6 +20,8 @@ Your complete SOC SIEM lab with **Elasticsearch + Kibana + Ollama AI** is now ru
 | **Kibana Dashboard** | http://localhost:5601 | View live logs |
 | **Elasticsearch API** | http://localhost:9200 | Raw data access |
 | **Ollama API** | http://localhost:11434 | AI threat analysis |
+| **Splunk Web** | http://localhost:8000 | SOC AI Chat app lives here (Phase 2, see SOC_AI_PHASE2.md) |
+| **SOC AI Chat** | http://localhost:8080/chat/ui | Same chat, standalone (also embedded as a Splunk app) |
 
 ---
 
@@ -94,7 +96,9 @@ You should see logs appearing in real-time!
 ### Step 5 (Optional): Pull AI Models
 ```bash
 cd /Users/mthirumalai/Documents/Personal/Claude/SOC_SIEM
-docker compose exec ollama ollama pull mistral
+docker compose exec ollama ollama pull nomic-embed-text   # local embeddings
+docker compose exec ollama ollama pull gemma4:cloud       # reasoning, runs on Ollama Cloud —
+                                                            # needs OLLAMA_API_KEY set in .env
 ```
 
 ### Step 6 (Optional): Start Alert Analyzer

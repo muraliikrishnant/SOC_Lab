@@ -1,0 +1,11 @@
+<dashboard version="1.1" theme="dark">
+  <label>SOC AI Chat</label>
+  <description>Chat with the local SOC AI assistant (Gemma 4 Cloud, grounded on ATT&amp;CK/Sigma/past alerts) while triaging logs in Splunk.</description>
+  <row>
+    <panel>
+      <html>
+        <iframe src="http://localhost:8080/chat/ui" width="100%" height="720" frameborder="0" style="border:none;"></iframe>
+      </html>
+    </panel>
+  </row>
+</dashboard>
